@@ -1,0 +1,195 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>SamirAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+    <script type="text/javascript">
+      window.tailwind.config = {
+        darkMode: ['class'],
+        theme: {
+          extend: {
+            colors: {
+              border: 'hsl(var(--border))',
+              input: 'hsl(var(--input))',
+              ring: 'hsl(var(--ring))',
+              background: 'hsl(var(--background))',
+              foreground: 'hsl(var(--foreground))',
+              primary: {
+                DEFAULT: 'hsl(var(--primary))',
+                foreground: 'hsl(var(--primary-foreground))'
+              },
+              secondary: {
+                DEFAULT: 'hsl(var(--secondary))',
+                foreground: 'hsl(var(--secondary-foreground))'
+              },
+              destructive: {
+                DEFAULT: 'hsl(var(--destructive))',
+                foreground: 'hsl(var(--destructive-foreground))'
+              },
+              muted: {
+                DEFAULT: 'hsl(var(--muted))',
+                foreground: 'hsl(var(--muted-foreground))'
+              },
+              accent: {
+                DEFAULT: 'hsl(var(--accent))',
+                foreground: 'hsl(var(--accent-foreground))'
+              },
+              popover: {
+                DEFAULT: 'hsl(var(--popover))',
+                foreground: 'hsl(var(--popover-foreground))'
+              },
+              card: {
+                DEFAULT: 'hsl(var(--card))',
+                foreground: 'hsl(var(--card-foreground))'
+              },
+              user: {
+                DEFAULT: 'hsl(210, 100%, 50%)', /* Blue background for user messages */
+                foreground: 'hsl(0, 0%, 100%)' /* White text for user messages */
+              }
+            },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        :root {
+          --background: 0 0% 100%;
+          --foreground: 0 0% 3.9%;
+          --card: 0 0% 100%;
+          --card-foreground: 0 0% 3.9%;
+          --popover: 0 0% 100%;
+          --popover-foreground: 0 0% 3.9%;
+          --primary: 0 0% 9%;
+          --primary-foreground: 0 0% 98%;
+          --secondary: 0 0% 96.1%;
+          --secondary-foreground: 0 0% 9%;
+          --muted: 0 0% 96.1%;
+          --muted-foreground: 0 0% 45.1%;
+          --accent: 0 0% 96.1%;
+          --accent-foreground: 0 0% 9%;
+          --destructive: 0 84.2% 60.2%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 0 0% 89.8%;
+          --input: 0 0% 89.8%;
+          --ring: 0 0% 3.9%;
+        }
+        .dark {
+          --background: 0 0% 3.9%;
+          --foreground: 0 0% 98%;
+          --card: 0 0% 3.9%;
+          --card-foreground: 0 0% 98%;
+          --popover: 0 0% 3.9%;
+          --popover-foreground: 0 0% 98%;
+          --primary: 0 0% 98%;
+          --primary-foreground: 0 0% 9%;
+          --secondary: 0 0% 14.9%;
+          --secondary-foreground: 0 0% 98%;
+          --muted: 0 0% 14.9%;
+          --muted-foreground: 0 0% 63.9%;
+          --accent: 0 0% 14.9%;
+          --accent-foreground: 0 0% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 0 0% 14.9%;
+          --input: 0 0% 14.9%;
+          --ring: 0 0% 83.1%;
+        }
+      }
+      /* Style for code blocks */
+      .code-block {
+        background-color: #f5f5f5;
+        border-left: 4px solid #007acc;
+        padding: 1rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+      }
+      .code-block pre {
+        margin: 0;
+      }
+      .code-block code {
+        display: block;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex flex-col h-screen bg-background">
+      <div class="flex justify-between items-center p-4 bg-primary shadow-lg rounded-b-lg">
+        <h1 class="text-2xl font-semibold text-primary-foreground">SamirAI</h1>
+        <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 p-2 rounded-lg transition duration-300" id="newChatButton">
+          New Chat
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 bg-card rounded-lg shadow-md" id="chatContainer">
+        <!-- Messages will be appended here -->
+      </div>
+      <div class="p-4 bg-card rounded-lg shadow-md">
+        <input type="text" id="userInput" placeholder="Type your message here" class="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring focus:ring-ring transition duration-300" />
+        <button id="sendButton" class="bg-accent text-accent-foreground hover:bg-accent/80 p-2 rounded-lg mt-2 transition duration-300">
+          <img aria-hidden="true" alt="send-icon" src="https://openui.fly.dev/openui/24x24.svg?text=📤" />
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let uid = generateUID();
+
+      document.getElementById('sendButton').addEventListener('click', async () => {
+        const message = document.getElementById('userInput').value;
+        if (!message) return;
+
+        appendMessage('You', message, 'user');
+        document.getElementById('userInput').value = '';
+
+        try {
+          const response = await fetch(`https://www.samirxpikachu.run.place/Gemini?text=${encodeURIComponent(message)}&uid=${uid}`, {
+            method: 'GET',
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          const data = await response.json();
+          const reply = data.candidates[0].content.parts[0].text;
+          appendMessage('SamirAI', formatMarkdown(reply));
+        } catch (error) {
+          console.error('Error:', error);
+          appendMessage('SamirAI', 'Sorry, something went wrong. Please try again later.');
+        }
+      });
+
+      document.getElementById('newChatButton').addEventListener('click', () => {
+        uid = generateUID();
+        document.getElementById('chatContainer').innerHTML = '';
+      });
+
+      function appendMessage(sender, message, type = 'response') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `p-3 rounded-lg mb-2 transition duration-300 ${type === 'user' ? 'bg-user text-user-foreground' : 'bg-muted text-muted-foreground'}`;
+        messageDiv.innerHTML = `<span class="font-bold text-accent">${sender}:</span> <p>${message}</p>`;
+        document.getElementById('chatContainer').appendChild(messageDiv);
+        document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+      }
+
+      function formatMarkdown(text) {
+        // Simple Markdown formatting
+        // Convert **bold** to <strong>
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Convert `code` to <code> inside <pre>
+        text = text.replace(/```(.*?)```/gs, '<div class="code-block"><pre><code>$1</code></pre></div>');
+        // Convert `inline code` to <code>
+        text = text.replace(/`([^`]*)`/g, '<code>$1</code>');
+        return text;
+      }
+
+      function generateUID() {
+        // Generate a random UID (for simplicity, using a timestamp + random number)
+        return Date.now() + Math.floor(Math.random() * 1000);
+      }
+    </script>
+  </body>
+</html>
